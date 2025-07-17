@@ -1,7 +1,8 @@
 #!/bin/bash
 #set -e
 
-FILENAME="$(basename $0)"
+#FILENAME="$(basename $0)"
+#VERSION=
 
 COMMAND=""
 if [ -x "$(command -v apt)" ]; then COMMAND="apt";            # Ubuntu/Debian
