@@ -136,3 +136,42 @@ function install_rclone() {
 
   fi  
 }
+
+###########################################################################################################
+
+while :; do
+    clear
+
+    echo "###############################################################"
+    echo "##"
+    echo "## $FILENAME v$VERSION"
+    echo "##"
+    echo "###############################################################"
+    echo ""
+    echo ""
+
+    echo " 0) Initialize: locale, time"
+    echo " 1) OS Upgrade"
+    echo ""
+    echo " 2) docker 설치"
+    echo " 3) docker-compose 설치"
+    echo " 4) git 설치"
+    echo " 5) rclone 설치"
+    echo ""
+    echo " q) 종료"
+    echo ""
+    read -p "# 원하시는 기능을 입력하세요. > " SELECT_VALUE
+    echo ""
+
+    case $SELECT_VALUE in
+      0) os_locale;;
+      1) os_upgrade;;
+      2) install_docker;;
+      3) install_docker_compose;;
+      4) install_git;;
+      5) install_rclone;;
+      q) break;;
+    esac
+
+    read -p "# 계속하려면 엔터키를 누르세요..." SELECT_VALUE
+done
