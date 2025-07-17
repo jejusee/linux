@@ -129,12 +129,6 @@ function install_rclone() {
     dnf) sudo dnf install -y fuse3;;
     *) "지원되는 패키지 관리자를 찾을 수 없습니다."; exit 1;;
   esac  
-
-  # rclone 경로 생성
-  CONFIG_PATH="/etc/rclone"
-  mkdir -p "$CONFIG_PATH"
-
-  fi  
 }
 
 ###########################################################################################################
