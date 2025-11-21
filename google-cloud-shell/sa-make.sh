@@ -12,7 +12,7 @@ echo "현재 프로젝트: $PROJECT_ID"
 for i in {001..100}
 do
    SA_NAME="sa-$i"
-   FILE_PATH="sa_keys/$SA_NAME.json"
+   FILE_PATH="sa_keys/${PROJECT_ID}_${SA_NAME}.json"
    SA_EMAIL="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
 
    # [핵심] 성공할 때까지 멈추지 않는 무한 루프 (While 문)
@@ -59,7 +59,7 @@ echo "현재 생성된 키 파일 개수: $count 개"
 find . -size 0 -print
 
 # 7. 이메일 리스트 추출 (그룹스 추가용)
-gcloud iam service-accounts list --format="value(email)" > email_list.txt
+gcloud iam service-accounts list --format="value(email)" | sort > email_list.txt
 
 # 8. 압축하기
 cd ..
