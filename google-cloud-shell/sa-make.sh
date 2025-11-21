@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 1. 홈 디렉토리로 이동 및 폴더 준비
+# 1. 홈 디렉토리 이동 및 폴더 준비
 cd ~
 mkdir -p sa_keys
 
@@ -8,33 +8,45 @@ mkdir -p sa_keys
 PROJECT_ID=$(gcloud config get-value project)
 echo "현재 프로젝트: $PROJECT_ID"
 
-# 3. 001번부터 100번까지 전수 검사 및 복구 시작
+# 3. 1번부터 100번까지 순회
 for i in {001..100}
 do
    SA_NAME="sa-$i"
    FILE_PATH="sa_keys/$SA_NAME.json"
    SA_EMAIL="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
 
-   # [검사] 파일이 존재하고 용량이 0보다 큰가? (-s 옵션)
-   if [ -s "$FILE_PATH" ]; then
-       # 정상이면 건너뜀 (속도 향상)
-       echo "✅ Skipping $SA_NAME (File OK)"
-   else
-       # 파일이 없거나 0바이트라면 복구 시작
-       echo "♻️ Repairing $SA_NAME (Re-creating)..."
-       
-       # [삭제] 꼬여있을 수 있는 기존 계정을 클라우드에서 삭제 (에러나도 무시)
-       gcloud iam service-accounts delete $SA_EMAIL --quiet || true
-       
-       # [생성] 계정 새로 생성
-       gcloud iam service-accounts create $SA_NAME --display-name "Worker $i"
+   # [핵심] 성공할 때까지 멈추지 않는 무한 루프 (While 문)
+   while true; do
+       # 1. 파일이 정상적으로 존재하는지 확인
+       if [ -s "$FILE_PATH" ]; then
+           echo "✅ $SA_NAME 완료 (File OK)"
+           break  # 성공했으니 While 문을 탈출하고 다음 번호(For 문)로 이동
+       fi
 
-       # [키 발급] 키 파일 생성
-       gcloud iam service-accounts keys create "$FILE_PATH" --iam-account $SA_EMAIL
-   fi
+       # 2. 파일이 없으면 생성 시도
+       echo "♻️ $SA_NAME 생성/복구 시도 중..."
+
+       # 기존 계정 삭제 (꼬임 방지, 에러 무시)
+       gcloud iam service-accounts delete $SA_EMAIL --quiet 2>/dev/null || true
+       
+       # 계정 생성 (에러 무시 - 이미 있을 수 있으므로)
+       gcloud iam service-accounts create $SA_NAME --display-name "Worker $i" 2>/dev/null || true
+
+       # 키 파일 발급 (여기가 제일 중요)
+       gcloud iam service-accounts keys create "$FILE_PATH" --iam-account $SA_EMAIL || true
+
+       # 3. 결과 확인 및 대기
+       if [ -s "$FILE_PATH" ]; then
+           echo "🎉 $SA_NAME 생성 성공!"
+           break # 성공! 다음 번호로
+       else
+           echo "⚠️ $SA_NAME 생성 실패/오류 발생. 5초 뒤 다시 시도합니다..."
+           sleep 5 # 구글 API가 숨 쉴 시간을 주고 다시 While문 처음으로 돌아감
+       fi
+   done
 done
 
-echo "🎉 모든 작업이 완료되었습니다."
+echo "🏁 100개 계정 생성 및 키 발급이 완벽하게 끝났습니다."
 
 # 4. 폴더 안으로 이동
 cd sa_keys
